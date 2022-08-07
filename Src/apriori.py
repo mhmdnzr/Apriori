@@ -28,14 +28,16 @@ def returnItemsWithMinSupport(itemSet, transactionList, minSupport, freqSet):
 
 
 def joinSet(itemSet, length):
-    return set(
-        [i.union(j)
-         for i in itemSet for j in itemSet if len(i.union(j)) == length]
-    )
+    return {
+        i.union(j)
+        for i in itemSet
+        for j in itemSet
+        if len(i.union(j)) == length
+    }
 
 
 def getItemSetTransactionList(data_iterator):
-    transactionList = list()
+    transactionList = []
     itemSet = set()
     for record in data_iterator:
         transaction = frozenset(record)
@@ -49,8 +51,8 @@ def runApriori(data_iter, minSupport, minConfidence):
     itemSet, transactionList = getItemSetTransactionList(data_iter)
 
     freqSet = defaultdict(int)
-    largeSet = dict()
-    assocRules = dict()
+    largeSet = {}
+    assocRules = {}
     oneCSet = returnItemsWithMinSupport(
         itemSet, transactionList, minSupport, freqSet)
 
@@ -75,7 +77,7 @@ def runApriori(data_iter, minSupport, minConfidence):
     toRetRules = []
     for key, value in list(largeSet.items())[1:]:
         for item in value:
-            _subsets = map(frozenset, [x for x in subsets(item)])
+            _subsets = map(frozenset, list(subsets(item)))
             for element in _subsets:
                 remain = item.difference(element)
                 if len(remain) > 0:
@@ -113,8 +115,7 @@ def dataFromFile(fname):
     with open(fname, "rU") as file_iter:
         for line in file_iter:
             line = line.strip().rstrip(" ")  # Remove trailing space
-            record = frozenset(line.split(" "))
-            yield record
+            yield frozenset(line.split(" "))
 
 
 if __name__ == "__main__":
@@ -143,14 +144,7 @@ if __name__ == "__main__":
     (options, args) = optparser.parse_args()
 
     inFile = None
-    if options.input is None:
-        inFile = sys.stdin
-    elif options.input is not None:
-        inFile = dataFromFile(options.input)
-    else:
-        print("No dataset filename specified, system with exit\n")
-        sys.exit("System will exit")
-
+    inFile = sys.stdin if options.input is None else dataFromFile(options.input)
     minSupport = options.minS
     minConfidence = options.minC
 
